@@ -1,0 +1,174 @@
+  @interface Group : NSObject
+  @property (strong, nonatomic) NSString *name;
+  @property (strong, nonatomic) NSString *description;
+  @property (strong, nonatomic) NSString *who;
+  @property (strong, nonatomic) NSString *country;
+  @property (strong, nonatomic) NSString *city;
+  @end
+
+
+@implementation MeetupCommunicator
+
+- (void)searchGroupsAtCoordinate:(CLLocationCoordinate2D)coordinate
+{
+  NSString *urlAsString = [NSString stringWithFormat:@"https://api.meetup.com/2/groups?lat=%f&lon=%f&page=%d&key=%@", coordinate.latitude, coordinate.longitude, PAGE_COUNT, API_KEY];
+  NSURL *url = [[NSURL alloc] initWithString:urlAsString];
+  NSLog(@"%@", urlAsString);
+  
+  [NSURLConnection sendAsynchronousRequest:[[NSURLRequest alloc] initWithURL:url] queue:[[NSOperationQueue alloc] init] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+   
+   if (error) {
+   [self.delegate fetchingGroupsFailedWithError:error];
+   } else {
+   [self.delegate receivedGroupsJSON:data];
+   }
+   }];
+}
+
+@end
+
+
+#import "GroupBuilder.h"
+#import "Group.h"
+
+@implementation GroupBuilder
++ (NSArray *)groupsFromJSON:(NSData *)objectNotation error:(NSError **)error
+{
+NSError *localError = nil;
+NSDictionary *parsedObject = [NSJSONSerialization JSONObjectWithData:objectNotation options:0 error:&localError];
+
+if (localError != nil) {
+  *error = localError;
+  return nil;
+}
+
+NSMutableArray *groups = [[NSMutableArray alloc] init];
+
+NSArray *results = [parsedObject valueForKey:@"results"];
+NSLog(@"Count %d", results.count);
+
+for (NSDictionary *groupDic in results) {
+  Group *group = [[Group alloc] init];
+  
+  for (NSString *key in groupDic) {
+    if ([group respondsToSelector:NSSelectorFromString(key)]) {
+      [group setValue:[groupDic valueForKey:key] forKey:key];
+    }
+  }
+  
+  [groups addObject:group];
+}
+
+  
+  
+  12
+  down vote
+  accepted
+  I would save my test json as separate files in the app. The advantage of this is that you can just copy&paste responses from a web service and read them easily without having to convert them to NSDictionaries or escaped strings.
+
+  I've correctly formatted your JSON (using jsonlint) and saved it to a file named 'testData.json' in the app bundle.
+
+  {"things":
+    [{
+     "id": "someIdentifier12345",
+     "name": "Danny",
+     "questions": [
+                   {
+                   "id": "questionId1",
+                   "name": "Creating dummy JSON data by hand."
+                   },
+                   {
+                   "id": "questionId2",
+                   "name": "Why no workie?"
+                   }
+                   ],
+     "websiteWithCoolPeople": "http://stackoverflow.com"
+     }]
+  }
+  Then in order to parse this file in your app you can simply load the file from the bundle directory.
+
+  NSString *filePath = [[NSBundle mainBundle] pathForResource:@"testdata" ofType:@"json"];
+  NSData *jsonData = [[NSData alloc] initWithContentsOfFile:filePath];
+
+  NSError *error = nil;
+  NSDictionary *jsonDict = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
+
+  NSLog(@"%@", jsonDict);
+  It would now be pretty easy to extend this to load any number of responses and essentially have a local web service. It then wouldn't be much more work to adapt this to load responses from a remote server.
+
+
+{
+  "results": [
+              {
+              "lon": -0.10000000149011612,
+              "visibility": "public",
+              "organizer": {
+              "name": "William Brown",
+              "member_id": 3817216
+              },
+              "link": "http://www.meetup.com/french-32/",
+              "state": "17",
+              "join_mode": "approval",
+              "who": "LFM members",
+              "country": "GB",
+              "city": "London",
+              "id": 63974,
+              "category": {
+              "id": 16,
+              "name": "language/ethnic identity",
+              "shortname": "language"
+              },
+              "topics": [
+                         {
+                         "id": 185,
+                         "urlkey": "french",
+                         "name": "French Language"
+                         },
+                         {
+                         "id": 264,
+                         "urlkey": "friends",
+                         "name": "Friends"
+                         },
+                         {
+                         "id": 3304,
+                         "urlkey": "expatfrench",
+                         "name": "Expat French"
+                         }
+                         ],
+              "timezone": "Europe/London",
+              "group_photo": {
+              "photo_link": "http://photos3.meetupstatic.com/photos/event/7/4/a/b/600_929867.jpeg",
+              "highres_link": "http://photos3.meetupstatic.com/photos/event/7/4/a/b/highres_929867.jpeg",
+              "thumb_link": "http://photos3.meetupstatic.com/photos/event/7/4/a/b/thumb_929867.jpeg",
+              "photo_id": 929867
+              },
+              "created": 1034097734000,
+              "description": "<p>The London French Meetup is the biggest group of French speakers of all ages and nationalities in London. We hold regular events to meet up, talk in French and share interests in French culture whilst having a good time.</p>
+              <p>We have two main events per month where we have the whole of the upstairs of a pub.</p>
+              <p>In addition, we organise other regular events such as outings to: restaurants, trendy bars, french films, live music, sports related activities, outdoor events and more...</p>
+              <p>The organising team is made of volunteers from different nationalities and ages. Our members are made up of: 1/3 French nationals, 1/3 British nationals and 1/3 other nationalities and francophone countries. If you have any ideas or suggestions for events or would like to help please let us know.</p>
+              <p>A bientôt.</p>
+              <p>LFM Team.</p>",
+              "name": "London French Meetup",
+              "rating": 4.37,
+              "urlname": "french-32",
+              "lat": 51.52000045776367,
+              "members": 4889
+              }
+              ],
+  "meta": {
+    "lon": -0.1337,
+    "count": 1,
+    "signed_url": "http://api.meetup.com/2/groups?radius=25.0&order=id&desc=false&offset=0&format=json&lat=51.50998&page=1&fields=&lon=-0.1337&sig_id=109020062&sig=4532ed8f987f940748ebfba0f483a26f756dcba3",
+    "link": "http://www.meetup.com/2/groups",
+    "next": "http://www.meetup.com/2/groups?radius=25.0&order=id&format=json&lat=51.50998&page=1&desc=false&offset=1&fields=&sign=true&lon=-0.1337",
+    "total_count": 4501,
+    "url": "http://www.meetup.com/2/groups?radius=25.0&order=id&format=json&lat=51.50998&page=1&desc=false&offset=0&fields=&sign=true&lon=-0.1337",
+    "id": "",
+    "title": "Meetup Groups v2",
+    "updated": 1377876449000,
+    "description": """",
+    "method": "Groups",
+    "lat": 51.50998
+  }
+}
