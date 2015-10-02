@@ -1,17 +1,17 @@
 //
-//  AppDelegate.h
+//  CoreDataStack.h
 //  HotelManager
 //
-//  Created by MICK SOUMPHONPHAKDY on 9/7/15.
-//  Copyright (c) 2015 MICK SOUMPHONPHAKDY. All rights reserved.
+//  Created by MICK SOUMPHONPHAKDY on 9/12/15.
+//  Copyright © 2015 MICK SOUMPHONPHAKDY. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+#import "AppDelegate.h"
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
 
-@property (strong, nonatomic) UIWindow *window;
+@interface CoreDataStack : NSObject
 
 @property (readonly, strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 @property (readonly, strong, nonatomic) NSManagedObjectModel *managedObjectModel;
@@ -19,7 +19,7 @@
 
 - (void)saveContext;
 - (NSURL *)applicationDocumentsDirectory;
+- (instancetype)initForTesting;
 + (AppDelegate *)sharedAppDelegate;
 
 @end
-

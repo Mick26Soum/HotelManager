@@ -9,7 +9,8 @@
 #import "AppDelegate.h"
 #import "ViewController.h"
 #import "MainMenuViewController.h"
-
+#import "Hotel.h"
+#import "Room.h"
 @interface AppDelegate ()
 
 @end
@@ -19,6 +20,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
  
+  [self seedCoreDataIfNeeded];
+  
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   [self.window makeKeyAndVisible];
   
@@ -28,6 +31,7 @@
   ViewController *rootView = [[ViewController alloc] init];
   rootView.view.backgroundColor = [UIColor blueColor];
   self.window.rootViewController = navControllerView;
+  
   
   return YES;
 }
@@ -54,6 +58,12 @@
   // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
   // Saves changes in the application's managed object context before the application terminates.
   [self saveContext];
+}
+
+#pragma mark - Shared AppDelegate
++ (AppDelegate *)sharedAppDelegate
+{
+  return (AppDelegate *)[[UIApplication sharedApplication] delegate];
 }
 
 #pragma mark - Core Data stack
@@ -134,6 +144,109 @@
             abort();
         }
     }
+}
+
+#pragma mark - Seed Core Data Method
+-(void)seedCoreDataIfNeeded{
+
+//  Uncomment to wipe out data
+//  source: http://stackoverflow.com/questions/1383598/core-data-quickest-way-to-delete-all-instances-of-an-entity
+
+//  NSFetchRequest *allHotels = [[NSFetchRequest alloc] init];
+//  [allHotels setEntity:[NSEntityDescription entityForName:@"Hotel" inManagedObjectContext:self.managedObjectContext]];
+//  [allHotels setIncludesPropertyValues:NO]; //only fetch the managedObjectID
+//  
+//  NSError *error = nil;
+//  NSArray *hotels = [self.managedObjectContext executeFetchRequest:allHotels error:&error];
+//  //error handling goes here
+//  for (NSManagedObject *hotel in hotels) {
+//    [self.managedObjectContext deleteObject:hotel];
+//  }
+//  NSError *saveError = nil;
+//  [self.managedObjectContext save:&saveError];
+//
+
+  NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"Hotel"];
+  NSError *fetchError;
+  NSInteger count = [self.managedObjectContext countForFetchRequest:fetchRequest error:&fetchError];
+  
+  if (count == 0) {
+    NSString *jsonPath = [[NSBundle mainBundle] pathForResource:@"hotels" ofType:@"json"];
+    NSData *jsonData = [NSData dataWithContentsOfFile:jsonPath];
+    
+    NSError *jsonError;
+    NSDictionary *rootObject = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&jsonError];
+    if (jsonError){
+      return;
+    }
+    else{
+    
+    NSArray *hotels = rootObject[@"Hotels"];
+      
+      for (NSDictionary *hotel in hotels) {
+        
+        NSString *name = hotel[@"name"];
+        NSString *location = hotel[@"location"];
+        NSNumber *stars = hotel[@"stars"];
+        NSArray *rooms = hotel[@"rooms"];
+        Hotel *hotel = [NSEntityDescription insertNewObjectForEntityForName:@"Hotel" inManagedObjectContext:self.managedObjectContext];
+        hotel.name = name;
+        hotel.location = location;
+        hotel.stars = stars;
+        
+        for (NSDictionary *room in rooms) {
+        
+        NSNumber *roomNumber = room[@"number"];
+        NSNumber *beds = room[@"beds"];
+        NSNumber *rate = room[@"rate"];
+        Room *room = [NSEntityDescription insertNewObjectForEntityForName:@"Room" inManagedObjectContext:self.managedObjectContext];
+        room.number = roomNumber;
+        room.beds = beds;
+        room.rate = rate;
+        room.hotel = hotel;
+        
+        }
+      }
+      
+      NSError *saveError;
+      BOOL result = [self.managedObjectContext save:&saveError];
+      if (!result) {
+        NSLog(@" %@",saveError.localizedDescription);
+    }
+  }
+}
+
+  
+//  Hotel *hotel1 = [NSEntityDescription insertNewObjectForEntityForName:@"Hotel" inManagedObjectContext:self.managedObjectContext];
+//  hotel1.name = @"Baller On A Budget Hotel";
+//  hotel1.stars = @4;
+//
+//  Hotel *hotel2 = [NSEntityDescription insertNewObjectForEntityForName:@"Hotel" inManagedObjectContext:self.managedObjectContext];
+//  hotel2.name = @"Basement Price Hotel";
+//  hotel2.stars = @2;
+//  
+//  Room *room1 = [NSEntityDescription insertNewObjectForEntityForName:@"Room" inManagedObjectContext:self.managedObjectContext];
+//  room1.number = @206;
+//  room1.hotel = hotel1;
+//  
+//  Room *room2 = [NSEntityDescription insertNewObjectForEntityForName:@"Room" inManagedObjectContext:self.managedObjectContext];
+//  room2.number = @425;
+//  room2.hotel = hotel1;
+//  
+//  Room *room3 = [NSEntityDescription insertNewObjectForEntityForName:@"Room" inManagedObjectContext:self.managedObjectContext];
+//  room3.number = @916;
+//  room3.hotel = hotel2;
+//  
+//  Room *room4 = [NSEntityDescription insertNewObjectForEntityForName:@"Room" inManagedObjectContext:self.managedObjectContext];
+//  room4.number = @415;
+//  room4.hotel = hotel2;
+  
+//  NSError *saveError;
+//  BOOL result = [self.managedObjectContext save:&saveError];
+//  if (!result) {
+//    NSLog(@"%@", saveError.description);
+//  }
+//  
 }
 
 @end

@@ -7,10 +7,13 @@
 //
 
 #import "MainMenuViewController.h"
+#import "HotelViewController.h"
+#import "SelectDateViewController.h"
 
 @interface MainMenuViewController () <UITableViewDataSource, UITableViewDelegate>
 
 @property(strong, nonatomic) UITableView *tableView;
+@property(strong, nonatomic) NSArray *menuTitleItems;
 
 @end
 
@@ -24,43 +27,18 @@
   UIView *rootView = [[UIView alloc] init];
   rootView.backgroundColor = [UIColor whiteColor];
 
-
-  
   self.tableView = [[UITableView alloc] initWithFrame:rootView.frame style:UITableViewStylePlain];
   self.tableView.backgroundColor = [UIColor whiteColor];
   
-  
   UIView *darkView = [[UIView alloc] initWithFrame:CGRectMake(50, 50, 50, 50)];
   darkView.backgroundColor = [UIColor blackColor];
-  
-  // Create a UITableView Controller and add it to the subview
-  //
+
+  // Add in NLayoutConstraints to TableView:
   self.view = self.tableView;
   [self.tableView addSubview:rootView];
-  
-  //instantiate button here to push the hotel list controller
-  //via UIButton Action
-  // inside each IBAction, allocate and initialize the second view controller
-  
-//  - (void)viewDidLoad
-//  {
-//  [super viewDidLoad];
-//  UIButton* testButn = [UIButton buttonWithType:UIButtonTypeCustom];
-//  [testButn setFrame:CGRectMake(0, 135, 40, 38)];
-//  [testButn setImage:[UIImage imageNamed:@"New_PICT0019.jpg"] forState:UIControlStateNormal];
-//  [testButn setImage:[UIImage imageNamed:@"New_PICT0002.jpg"]   forState:UIControlStateSelected];
-//  [testButn addTarget:self action:@selector(stayPressed:) forControlEvents:UIControlEventTouchDown];
-//  [self.view addSubview:testButn];
-//  }
+//  [rootView addSubview:self.tableView];
+//  self.view = rootView;
 //  
-//  -(void)stayPressed:(UIButton *) sender {
-//    if (sender.selected == YES) {
-//      sender.selected = NO;
-//    }else{
-//      sender.selected = YES;
-//    }
-//  }
-  
   }
 
 - (void)viewDidLoad {
@@ -70,35 +48,44 @@
   self.tableView.delegate = self;
   [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"MainMenuCell"];
   
-    // Do any additional setup after loading the view.
+  self.menuTitleItems = @[@"Browse a Room", @"Book a Room", @"Look Up Reservation"];
+  [self.tableView reloadData];
   
-}
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - MainMenuTableViewDatasource
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-  return  4;
+  return  [self.menuTitleItems count];
 }
 
 - (UITableViewCell*)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
 
   UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MainMenuCell" forIndexPath:indexPath];
-
+  if (cell == nil) {
+    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MainMenuCell"];
+  }
+  cell.textLabel.text = [self.menuTitleItems objectAtIndex:indexPath.row];
+  
   return cell;
 }
 
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+  
+  NSString *menuSelected = [self.menuTitleItems objectAtIndex:indexPath.row];
+  
+  if ([menuSelected isEqualToString:@"Browse a Room"]) {
+    NSLog(@"Browse a Rooom");
+    //initialize controller
+    HotelViewController *hotelListViewController = [[HotelViewController alloc]init];
+    [self.navigationController pushViewController:hotelListViewController animated:YES];
+    //push onto the navigation stack
+  }else if ([menuSelected isEqualToString:@"Look Up Reservation"]){
+    NSLog(@"Looking up that Reserv");
+  }else if ([menuSelected isEqualToString:@"Book a Room"]){
+    SelectDateViewController *selectDateViewController = [[SelectDateViewController alloc] init];
+    [self.navigationController pushViewController:selectDateViewController animated:YES];
+    NSLog(@"Book it");
+  }
 }
-*/
 
 @end

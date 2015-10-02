@@ -15,5 +15,8 @@
 
 @property (nonatomic, retain) NSNumber * number;
 @property (nonatomic, retain) Hotel *hotel;
+@property (nonatomic, retain) NSNumber * beds;
+@property (nonatomic, retain) NSNumber * rate;
+//@property (nonatomic, retain) Reservation *reservation;
 
 @end

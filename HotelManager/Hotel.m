@@ -15,5 +15,6 @@
 @dynamic name;
 @dynamic stars;
 @dynamic rooms;
+@dynamic location;
 
 @end

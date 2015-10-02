@@ -16,6 +16,7 @@
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) NSNumber * stars;
 @property (nonatomic, retain) NSSet *rooms;
+@property (nonatomic, retain) NSString * location;
 @end
 
 @interface Hotel (CoreDataGeneratedAccessors)

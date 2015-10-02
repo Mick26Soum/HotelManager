@@ -8,11 +8,15 @@
 
 #import "Room.h"
 #import "Hotel.h"
+//#import "Reservation.h"
 
 
 @implementation Room
 
 @dynamic number;
 @dynamic hotel;
+@dynamic beds;
+@dynamic rate;
+//@dynamic reservation;
 
 @end
